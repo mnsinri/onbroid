@@ -4,6 +4,7 @@ import asyncio
 import aiohttp
 import lxml.html
 import re
+import json
 from random import randint
 from googletrans import Translator
 
@@ -11,114 +12,8 @@ token_file = '../bot.txt'
 t = Translator()
 session = aiohttp.ClientSession()
 client = discord.Client()
-
-LANGUAGES = {
-    'af': 'afrikaans',
-    'sq': 'albanian',
-    'am': 'amharic',
-    'ar': 'arabic',
-    'hy': 'armenian',
-    'az': 'azerbaijani',
-    'eu': 'basque',
-    'be': 'belarusian',
-    'bn': 'bengali',
-    'bs': 'bosnian',
-    'bg': 'bulgarian',
-    'ca': 'catalan',
-    'ceb': 'cebuano',
-    'ny': 'chichewa',
-    'zh': 'chinese',
-    'co': 'corsican',
-    'hr': 'croatian',
-    'cs': 'czech',
-    'da': 'danish',
-    'nl': 'dutch',
-    'en': 'english',
-    'eo': 'esperanto',
-    'et': 'estonian',
-    'tl': 'filipino',
-    'fi': 'finnish',
-    'fr': 'french',
-    'fy': 'frisian',
-    'gl': 'galician',
-    'ka': 'georgian',
-    'de': 'german',
-    'el': 'greek',
-    'gu': 'gujarati',
-    'ht': 'haitian creole',
-    'ha': 'hausa',
-    'haw': 'hawaiian',
-    'iw': 'hebrew',
-    'hi': 'hindi',
-    'hmn': 'hmong',
-    'hu': 'hungarian',
-    'is': 'icelandic',
-    'ig': 'igbo',
-    'id': 'indonesian',
-    'ga': 'irish',
-    'it': 'italian',
-    'ja': 'japanese',
-    'jw': 'javanese',
-    'kn': 'kannada',
-    'kk': 'kazakh',
-    'km': 'khmer',
-    'ko': 'korean',
-    'ku': 'kurdish (kurmanji)',
-    'ky': 'kyrgyz',
-    'lo': 'lao',
-    'la': 'latin',
-    'lv': 'latvian',
-    'lt': 'lithuanian',
-    'lb': 'luxembourgish',
-    'mk': 'macedonian',
-    'mg': 'malagasy',
-    'ms': 'malay',
-    'ml': 'malayalam',
-    'mt': 'maltese',
-    'mi': 'maori',
-    'mr': 'marathi',
-    'mn': 'mongolian',
-    'my': 'myanmar (burmese)',
-    'ne': 'nepali',
-    'no': 'norwegian',
-    'ps': 'pashto',
-    'fa': 'persian',
-    'pl': 'polish',
-    'pt': 'portuguese',
-    'pa': 'punjabi',
-    'ro': 'romanian',
-    'ru': 'russian',
-    'sm': 'samoan',
-    'gd': 'scots gaelic',
-    'sr': 'serbian',
-    'st': 'sesotho',
-    'sn': 'shona',
-    'sd': 'sindhi',
-    'si': 'sinhala',
-    'sk': 'slovak',
-    'sl': 'slovenian',
-    'so': 'somali',
-    'es': 'spanish',
-    'su': 'sundanese',
-    'sw': 'swahili',
-    'sv': 'swedish',
-    'tg': 'tajik',
-    'ta': 'tamil',
-    'te': 'telugu',
-    'th': 'thai',
-    'tr': 'turkish',
-    'uk': 'ukrainian',
-    'ur': 'urdu',
-    'uz': 'uzbek',
-    'vi': 'vietnamese',
-    'cy': 'welsh',
-    'xh': 'xhosa',
-    'yi': 'yiddish',
-    'yo': 'yoruba',
-    'zu': 'zulu',
-    'fil': 'filipino',
-    'he': 'hebrew'
-}
+with open('language.json', 'r') as f:
+    LANGUAGES = json.load(f)
 
 def get_token(token_file):
     with open(token_file) as f:
@@ -188,7 +83,7 @@ async def nothing_came_up(element):
         )
     return embed
 
-async def get_synoym(url):
+async def get_synonym(url):
     data = []
     async with session.get(url) as response:
         root = lxml.html.fromstring(await response.text())
@@ -213,13 +108,14 @@ async def weblio_trans(element):
                     pronunce = root.xpath('//*[@id="phoneticEjjeNavi"]/div/span[2]')[0].text #pronunciation 1
                 except:
                     pronunce = ''
-                data = await get_synoym(a_url)
+                data = await get_synonym(a_url)
                 return await edit_embed(element, meaning, pronunce, data)
 
 async def google_trans(element, dest):
     translate = t.translate(element, dest=dest).text
+    key = 'zh' if dest.lower() == 'zh-cn' else dest.lower()
     embed = discord.Embed(
-        title='**->** '+element+"  to  "+LANGUAGES[dest],
+        title='**->** '+element+"  to  "+LANGUAGES[key],
         description=translate,
         color=16738740
         )
@@ -235,7 +131,7 @@ async def trans(contents):
         for content in contents:
             if content[0] == '-':
                 if content[1:].lower() in LANGUAGES:
-                    dest = 'zh-cn' if content[1:].lower() == 'zn' else content[1:].lower()
+                    dest = 'zh-cn' if content[1:].lower() == 'zh' else content[1:].lower()
                     contents.remove(content)
                 else:
                     return show_lang()
@@ -248,20 +144,20 @@ async def trans(contents):
 async def on_message(message):
     if message.author.bot:
         return
-    elif message.content[0] == '*': #translate
+    if message.content[0] == '*': #translate
         contents = message.content[1:].split()
         embed = await trans(contents)
         await message.channel.send('', embed=embed)
-    elif message.content[0] == '?':
+    if message.content[0] == '?':
         contents = message.content[1:].split()
         if contents[0] == 'help': #show available languages
             await message.channel.send('', embed=show_lang())
-        elif contents[0] == 'onbroid': #close client
+        if contents[0] == 'onbroid': #close client
             await session.close()
             if session.closed:
                 print('Aiohttp client session is closed')
             await client.close()
-        elif contents[0] == 'whats': #tell available languages
+        if contents[0] == 'whats': #tell available languages
             langs = []
             contents.remove('whats')
             contents_lower = [lang.lower() for lang in contents]
