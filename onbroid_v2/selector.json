@@ -1,0 +1,5 @@
+{
+  "main_path": "body > center > table:nth-child(4) > tbody > tr > td.pad15-2 > table:nth-child(2) > tbody > tr:nth-child(1) > td",
+  "term_path": "body > center > table:nth-child(4) > tbody > tr > td.pad15-2 > table:nth-child(2) > tbody > tr:nth-child(1) > td > h2 > b > strong",
+  "meaning_path": "body > center > table:nth-child(4) > tbody > tr > td.pad15-2 > table:nth-child(2) > tbody > tr:nth-child(1) > td > p"
+}
