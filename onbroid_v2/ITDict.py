@@ -32,9 +32,11 @@ class ITDict():
 
     # @param  BeautifulSoupObject
     def edit_result(self, soup):
-        self.update_contents('title', self.fetch_text(soup, self.pathes.term_path()), '**', ':mag:')
-        self.update_contents('title', self.fetch_text(soup, self.pathes.term_detail_path()))
-        self.update_contents('description', self.fetch_text(soup, self.pathes.term_meaning_path()))
+        title = self.fetch_text(soup, self.pathes.term_path())
+        if title:
+            self.update_contents('title', title, '**', ':mag:')
+            self.update_contents('title', self.fetch_text(soup, self.pathes.term_detail_path()))
+            self.update_contents('description', self.fetch_text(soup, self.pathes.term_meaning_path()))
 
     # @param  BeautifulSoupObject
     # @param  contents_key
