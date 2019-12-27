@@ -40,6 +40,7 @@ class Onbroid(discord.Client):
         print(f"[search] {msg_content[0]}")
         embed_contents = await self.search_term(msg_content[0])
         print(f"[return] {embed_contents}")
-        embed = discord.Embed(**embed_contents)
-        # embed.add_field(name='name', value='value', inline=True)
-        await message.channel.send(embed=embed)
+        if embed_contents:
+            embed = discord.Embed(**embed_contents)
+            # embed.add_field(name='name', value='value', inline=True)
+            await message.channel.send(embed=embed)
