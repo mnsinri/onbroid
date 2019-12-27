@@ -5,11 +5,11 @@ class Selector():
 		with open('./selector.json') as f:
 			self.config = json.load(f)
 
-	def main_path(self):
-		return self.config.get('main_path')
-
 	def term_path(self):
 		return self.config.get('term_path')
 
-	def meaning_path(self):
-		return self.config.get('meaning_path')
+	def term_detail_path(self):
+		return self.config.get('term_detail_path')
+
+	def term_meaning_path(self):
+		return self.config.get('term_meaning_path')

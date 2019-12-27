@@ -1,11 +1,10 @@
-from weblioDict import WeblioDict
+from ITDict import ITDict
 import asyncio
 
-gt = WeblioDict('TCP')
+gt = ITDict('TCP')
 print(gt.endpoint)
 
 loop = asyncio.get_event_loop()
 f = asyncio.wait([gt.search()])
 loop.run_until_complete(f)
 
-print(f)
