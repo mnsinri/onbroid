@@ -6,7 +6,9 @@ from config import Config
 
 class Onbroid(discord.Client):
     def __init__(self, config):
+        print("[connect]")
         self.config = config
+        self.dictionary = ITDict()
         super().__init__()
 
     def run(self):
@@ -17,8 +19,7 @@ class Onbroid(discord.Client):
             await super().close()
 
     async def search_term(self, source_text):
-        ITdictionary = ITDict(source_text)
-        return await ITdictionary.search()
+        return await self.dictionary.search(source_text)
 
     async def on_message(self, message):
         if message.author.bot \
@@ -31,12 +32,12 @@ class Onbroid(discord.Client):
             #Will be added
             return
 
-        print(f"[search] {msg_content[0]}")
-
         if msg_content[0] == 'onbroid':
+            print("[close]")
             await self.close()
             return
 
+        print(f"[search] {msg_content[0]}")
         embed_contents = await self.search_term(msg_content[0])
         print(f"[return] {embed_contents}")
         embed = discord.Embed(**embed_contents)

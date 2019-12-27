@@ -6,17 +6,16 @@ from selector import Selector
 
 class ITDict():
     # @param  source_text
-    def __init__(self, source_text):
-        self.text = source_text
-        self.endpoint = 'http://e-words.jp/w/' + self.text
+    def __init__(self):
         self.pathes = Selector()
+        self.endpoint = 'http://e-words.jp/w/'
         self.contents = dict()
 
-    async def search(self):
-        html_obj = await self.get_html(self.endpoint)
+    async def search(self, source_text):
+        html_obj = await self.get_html(self.endpoint + source_text)
         soup = self.parse_html(html_obj)
-        self.edit_result(soup)
-        return self.contents
+        contents = self.edit_result(soup)
+        return contents
 
     # @param  endpoint
     # @return HTMLObject
@@ -32,11 +31,13 @@ class ITDict():
 
     # @param  BeautifulSoupObject
     def edit_result(self, soup):
+        contents = {}
         title = self.fetch_text(soup, self.pathes.term_path())
         if title:
-            self.update_contents('title', title, '**', ':mag:')
-            self.update_contents('title', self.fetch_text(soup, self.pathes.term_detail_path()))
-            self.update_contents('description', self.fetch_text(soup, self.pathes.term_meaning_path()))
+            contents.update(self.create_content(contents, 'title', title, '**', ':mag:'))
+            contents.update(self.create_content(contents, 'title', self.fetch_text(soup, self.pathes.term_detail_path())))
+            contents.update(self.create_content(contents, 'description', self.fetch_text(soup, self.pathes.term_meaning_path())))
+        return contents
 
     # @param  BeautifulSoupObject
     # @param  contents_key
@@ -46,13 +47,15 @@ class ITDict():
         text = value.get_text().replace('\xa0', '') if value else ''
         return text
 
+    # @param  contents
     # @param  contents_key
     # @param  value
     # @param  markdown
     # @param  emoji
-    def update_contents(self, contents_key, value, markdown = '', emoji = ''):
+    def create_content(self, contents, contents_key, value, markdown='', emoji=''):
         text = emoji + markdown + value + markdown
-        if contents_key in self.contents:
-            self.contents[contents_key] += text
+        if contents_key in contents:
+            contents[contents_key] += text
         else:
-            self.contents[contents_key] = text
+            contents[contents_key] = text
+        return contents
