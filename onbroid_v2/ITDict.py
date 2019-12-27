@@ -5,18 +5,18 @@ from bs4 import BeautifulSoup
 from selector import Selector
 
 class ITDict():
+    # @param  source_text
     def __init__(self, source_text):
         self.text = source_text
         self.endpoint = 'http://e-words.jp/w/' + self.text
         self.pathes = Selector()
         self.contents = dict()
 
-    # @return contents
     async def search(self):
         html_obj = await self.get_html(self.endpoint)
         soup = self.parse_html(html_obj)
         self.edit_result(soup)
-        self.return_contents()
+        return self.contents
 
     # @param  endpoint
     # @return HTMLObject
@@ -45,6 +45,7 @@ class ITDict():
         return text
 
     # @param  contents_key
+    # @param  value
     # @param  markdown
     # @param  emoji
     def update_contents(self, contents_key, value, markdown = '', emoji = ''):
@@ -53,7 +54,3 @@ class ITDict():
             self.contents[contents_key] += text
         else:
             self.contents[contents_key] = text
-
-    # @param  contents
-    def return_contents(self):
-        return self.contents

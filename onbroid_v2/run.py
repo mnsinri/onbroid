@@ -1,10 +1,11 @@
-from ITDict import ITDict
 import asyncio
 
-gt = ITDict('TCP')
-print(gt.endpoint)
+from bot import Onbroid
+from config import Config
 
-loop = asyncio.get_event_loop()
-f = asyncio.wait([gt.search()])
-loop.run_until_complete(f)
+if __name__ == "__main__":
+    config = Config('../token.json')
+
+    bot = Onbroid(config)
+    bot.run()
 
