@@ -5,12 +5,13 @@ from bs4 import BeautifulSoup
 from selector import Selector
 
 class ITDict():
-    # @param  source_text
     def __init__(self):
         self.pathes = Selector()
         self.endpoint = 'http://e-words.jp/w/'
         self.contents = dict()
 
+    # @param  source_text
+    # @return contents
     async def search(self, source_text):
         html_obj = await self.get_html(self.endpoint + source_text)
         soup = self.parse_html(html_obj)
