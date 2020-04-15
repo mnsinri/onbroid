@@ -8,6 +8,9 @@ class Selector():
 	def term_path(self):
 		return self.config.get('term_path')
 
+	def term_path_jp(self):
+		return self.config.get('term_path_jp')
+
 	def term_detail_path(self):
 		return self.config.get('term_detail_path')
 

@@ -32,7 +32,7 @@ class Onbroid(discord.Client):
             #Will be added
             return
 
-        if msg_content[0] == 'lize':
+        if msg_content[0] == 'close-helesta':
             print("[close]")
             await self.close()
             return
@@ -43,3 +43,6 @@ class Onbroid(discord.Client):
             embed = discord.Embed(**embed_contents, color=discord.Colour.blue())
             # embed.add_field(name='name', value='value', inline=True)
             await message.channel.send(embed=embed)
+        else:
+            await message.channel.send("てぇてぇ閉廷！")
+

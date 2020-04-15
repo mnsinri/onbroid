@@ -1,6 +1,6 @@
 {
   "term_path": "#word > span",
+  "term_path_jp": "#word",
   "term_detail_path": "#h1word > span",
   "term_meaning_path": "#Summary > p"
-
 }

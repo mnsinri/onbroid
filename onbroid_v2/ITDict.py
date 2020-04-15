@@ -13,7 +13,9 @@ class ITDict():
     # @param  source_text
     # @return contents
     async def search(self, source_text):
-        html_obj = await self.get_html(self.endpoint + source_text)
+        print(f'endpoint: {self.endpoint + source_text + ".html"}')
+        html_obj = await self.get_html(self.endpoint + source_text + '.html')
+        # print(f'html_obj: {html_obj}')
         soup = self.parse_html(html_obj)
         contents = self.edit_result(soup)
         return contents
@@ -33,11 +35,13 @@ class ITDict():
     # @param  BeautifulSoupObject
     def edit_result(self, soup):
         contents = {}
-        title = self.fetch_text(soup, self.pathes.term_path())
+        title = self.fetch_text(soup, self.pathes.term_path()) or self.fetch_text(soup, self.pathes.term_path_jp())
+        print(f'title: {title}')
         if title:
             contents.update(self.create_content(contents, 'title', title, '**', ':mag:'))
             contents.update(self.create_content(contents, 'title', self.fetch_text(soup, self.pathes.term_detail_path())))
             contents.update(self.create_content(contents, 'description', self.fetch_text(soup, self.pathes.term_meaning_path())))
+            print(f'contents: {contents}')
         return contents
 
     # @param  BeautifulSoupObject
