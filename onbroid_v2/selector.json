@@ -10,5 +10,6 @@
   "legends_url": "a",
   "legend_details": "ea-details-table-row[slot='details-table-row']",
   "legend_details_name": "div > div:nth-child(1)",
-  "legend_details_value": "div > div:nth-child(2)"
+  "legend_details_value": "div > div:nth-child(2)",
+  "profile_error": "div.trn-site__container > div.trn-card.trn-card--error"
 }

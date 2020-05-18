@@ -41,3 +41,6 @@ class Selector():
 	def legend_details_value(self):
 		return self.config.get('legend_details_value')
 
+	def profile_error(self):
+		return self.config.get('profile_error')
+

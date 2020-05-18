@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 
 from ITDict import ITDict
-from Apex import ApexRandomCharactor
+from Apex import ApexRandomCharactor, ApexProfile
 from config import Config
 
 class Onbroid(discord.Client):
@@ -15,10 +15,11 @@ class Onbroid(discord.Client):
     
         self.config = config
         self.dictionary = ITDict()
-        self.apex = ApexRandomCharactor()
+        self.apexRandomCharactor = ApexRandomCharactor()
+        self.apexProfile = ApexProfile(self.config.api_key)
 
         self.loop = asyncio.get_event_loop()
-        task = self.loop.create_task(self.apex.refresh_legends())
+        task = self.loop.create_task(self.apexRandomCharactor.refresh_legends())
         self.loop.run_until_complete(task)
 
         # self.set_interval_for_refresh()
@@ -66,9 +67,9 @@ class Onbroid(discord.Client):
         return await self.dictionary.search(source_text)
 
     def select_legends(self):
-        return self.apex.get_legends()
+        return self.apexRandomCharactor.get_legends()
 
-    def make_embed(self, contents='', thumbnail='', fields=[]):
+    def make_embed(self, contents='', thumbnail='', fields=[], author={}):
         embed = None
         if contents:
             # now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
@@ -78,6 +79,7 @@ class Onbroid(discord.Client):
 
             thumbnail and embed.set_thumbnail(url=thumbnail)
             fields and [embed.add_field(name=data['name'] , value=data['value']) for data in fields]
+            author and embed.set_author(name=author['name'], icon_url=author['icon_url'])
         return embed
 
     async def on_message(self, message):
@@ -86,25 +88,49 @@ class Onbroid(discord.Client):
             return
 
         msg_content = message.content[len(self.config.prefix):].split(' ')
+        length = len(msg_content)
 
         if msg_content[0] == 'close-helesta':
             print('[close]')
+            await self.apexRandomCharactor.close_session()
+            await self.apexProfile.close_session()
             await self.close()
             return
 
         if msg_content[0] == 'pex':
-            if len(msg_content) == 2 and msg_content[1] == '--refresh':
-                await self.apex.refresh_legends()
-                return
-
             print('[pex]')
-            contents = self.select_legends()
-            embed = self.make_embed(contents['embed'], contents['thumbnail'], contents['fields'])
+            if length >= 2:
+                if msg_content[1] == '-refresh':
+                    await self.apexRandomCharactor.refresh_legends()
 
-            await message.channel.send(message.author.mention + ' you are ...', embed=embed)
+                elif msg_content[1] == '-profile':
+                    if length == 3:
+                        result = await self.apexProfile.searchProfile(msg_content[2])
+                        if result:
+                            embed = self.make_embed(result['embed'], result['thumbnail'], result['fields'], result['author'])
+                            await message.channel.send(embed=embed)
+                            return
+
+                    await message.channel.send('てぇてぇ閉廷！')
+            else:
+                contents = self.select_legends()
+                embed = self.make_embed(contents['embed'], contents['thumbnail'], contents['fields'])
+                await message.channel.send(message.author.mention + ' you are ...', embed=embed)
 
         elif msg_content[0] == 'help':
             print('[help]')
+            container = {
+                'title': ':question: Help',
+                'description': 'Prefix: `'+self.config.prefix+'`'
+            }
+            fields = [
+                {'name': '```'+self.config.prefix+'pex```','value': 'legends are randomly selected.'},
+                {'name': '```'+self.config.prefix+'pex -refresh```','value': 'legends list updated'},
+                {'name': '```'+self.config.prefix+'pex -profile {USERNAME}```','value': "show {USERNAME}'s APEX profile"},
+                {'name': '```'+self.config.prefix+'{SEARCH_ITEM}```','value': 'search {SEARCH_ITEM} in e-words'}
+            ]
+            embed = self.make_embed(container, fields=fields)
+            await message.channel.send(embed=embed)
             
         else:
             print(f'[search] {msg_content[0]}')

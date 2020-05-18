@@ -7,3 +7,4 @@ class Config():
 
         self.token = self.config.get('token')
         self.prefix = self.config.get('prefix', '*')
+        self.api_key = self.config.get('api_key')

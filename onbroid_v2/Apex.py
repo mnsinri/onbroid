@@ -8,12 +8,15 @@ from selector import Selector
 class ApexRandomCharactor():
     def __init__(self):
         self.pathes = Selector()
+        self.session = aiohttp.ClientSession()
         self.legends = []
 
+    async def close_session(self):
+        await self.session.close()
+
     async def get_html(self, endpoint):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(endpoint) as response:
-                return await response.text()
+        async with self.session.get(endpoint) as response:
+            return await response.text()
 
     def parse_html(self, htmlObject):
         return BeautifulSoup(htmlObject, 'html.parser')
@@ -63,3 +66,49 @@ class ApexRandomCharactor():
         
     def get_legends(self):
         return self.legends[random.randint(0, len(self.legends) - 1)]
+
+class ApexProfile():
+    def __init__(self, api_key):
+        self.pathes = Selector()
+        self.api_key = api_key
+        self.session = aiohttp.ClientSession()
+        self.endpoint = "https://public-api.tracker.gg/v2/apex/standard/profile/origin/"
+
+    async def close_session(self):
+        await self.session.close()
+
+    async def get_profile(self, endpoint, ):
+        async with self.session.get(endpoint, headers={'TRN-Api-Key': self.api_key}) as response:
+            return await response.json()
+
+    def isAvailableUsername(self, res):
+        return res.get('data')
+
+    def parse_profile(self, res):
+        if not self.isAvailableUsername(res):
+            return {}
+
+        resultObj = {}
+
+        author = {}
+        author['name'] = res['data']['platformInfo']['platformUserHandle']
+        author['icon_url'] = res['data']['platformInfo']['avatarUrl']
+        resultObj['author'] = author
+        
+        buf = res['data']['segments'][0]['stats']
+        level = buf.pop('level')
+        resultObj['fields'] = [{'name': k, 'value': v["displayValue"]} for k, v in buf.items()]
+
+        resultObj['thumbnail'] = res['data']['segments'][0]['stats']['rankScore']['metadata']['iconUrl']
+        
+        embed = {}
+        embed['title'] = '**Rank Point**: `' + res['data']['segments'][0]['stats']['rankScore']['displayValue'] + '`'
+        embed['description'] = '**Account Level**: `' + level['displayValue'] + '`'
+        resultObj['embed'] = embed
+
+        return resultObj
+
+    async def searchProfile(self, username):
+        response = await self.get_profile(self.endpoint + username)
+        return self.parse_profile(response)
+        
