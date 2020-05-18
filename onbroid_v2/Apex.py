@@ -51,7 +51,6 @@ class ApexRandomCharactor():
         fields = [self.parse_details(legend) for legend in details]
         legendObj['fields'] = fields
         
-
         return legendObj
 
     async def parse_legends(self, soupOfCharacters):
@@ -64,8 +63,13 @@ class ApexRandomCharactor():
         self.legends = await self.parse_legends(soupOfCharacters)
         print('[ApexRandomCharactor] refresh')
         
-    def get_legends(self):
-        return self.legends[random.randint(0, len(self.legends) - 1)]
+    def get_legend(self):
+        return self.legends[random.randint(0, len(self.legends)-1)]
+    
+    def get_legends(self, team=1):
+        indexList = list(range(len(self.legends)))
+        popedList = random.sample(indexList, len(indexList))[:min(3, team)]
+        return [self.legends[i] for i in popedList]
 
 class ApexProfile():
     def __init__(self, api_key):

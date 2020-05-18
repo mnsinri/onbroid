@@ -66,8 +66,15 @@ class Onbroid(discord.Client):
     async def search_term(self, source_text):
         return await self.dictionary.search(source_text)
 
-    def select_legends(self):
-        return self.apexRandomCharactor.get_legends()
+    def parse_legends(self, legends):
+        return {'name': legends['embed']['description'], 'value': '**'+legends['embed']['title']+'**'}
+
+    def select_legends(self, num):
+        return self.apexRandomCharactor.get_legends(num)
+
+    def select_legend(self):
+        return self.apexRandomCharactor.get_legend()
+
 
     def make_embed(self, contents='', thumbnail='', fields=[], author={}):
         embed = None
@@ -100,7 +107,13 @@ class Onbroid(discord.Client):
         if msg_content[0] == 'pex':
             print('[pex]')
             if length >= 2:
-                if msg_content[1] == '-refresh':
+                if msg_content[1].isdecimal():
+                    thumbnail = 'https://media.contentapi.ea.com/content/dam/apex-legends/common/logos/apex-copyright-sigil-white.png'
+                    contents = self.select_legends(int(msg_content[1]))
+                    embed = self.make_embed(contents={ 'title': ':new: **部隊メンバー**' }, thumbnail=thumbnail , fields=[self.parse_legends(legend) for legend in contents])
+                    await message.channel.send(embed=embed)
+
+                elif msg_content[1] == '-refresh':
                     await self.apexRandomCharactor.refresh_legends()
 
                 elif msg_content[1] == '-profile':
@@ -113,7 +126,7 @@ class Onbroid(discord.Client):
 
                     await message.channel.send('てぇてぇ閉廷！')
             else:
-                contents = self.select_legends()
+                contents = self.select_legend()
                 embed = self.make_embed(contents['embed'], contents['thumbnail'], contents['fields'])
                 await message.channel.send(message.author.mention + ' you are ...', embed=embed)
 
@@ -124,10 +137,11 @@ class Onbroid(discord.Client):
                 'description': 'Prefix: `'+self.config.prefix+'`'
             }
             fields = [
-                {'name': '```'+self.config.prefix+'pex```','value': 'legends are randomly selected.'},
+                {'name': '```'+self.config.prefix+'pex```','value': 'a legend is randomly selected.'},
+                {'name': '```'+self.config.prefix+'pex {num}```','value': '{num (1~3)} legends are randomly selected.'},
                 {'name': '```'+self.config.prefix+'pex -refresh```','value': 'legends list updated'},
-                {'name': '```'+self.config.prefix+'pex -profile {USERNAME}```','value': "show {USERNAME}'s APEX profile"},
-                {'name': '```'+self.config.prefix+'{SEARCH_ITEM}```','value': 'search {SEARCH_ITEM} in e-words'}
+                {'name': '```'+self.config.prefix+'pex -profile {username}```','value': "show {username}'s APEX profile"},
+                {'name': '```'+self.config.prefix+'{search_item}```','value': 'search {search_item} in e-words'}
             ]
             embed = self.make_embed(container, fields=fields)
             await message.channel.send(embed=embed)
