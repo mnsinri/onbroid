@@ -2,5 +2,13 @@
   "term_path": "#word > span",
   "term_path_jp": "#word",
   "term_detail_path": "#h1word > span",
-  "term_meaning_path": "#Summary > p"
+  "term_meaning_path": "#Summary > p",
+  "catalog_container": "ea-grid > ea-container",
+  "legends_name": "h3",
+  "legends_copy": "ea-tile-copy",
+  "legends_thumbnail": "ea-tile",
+  "legends_url": "a",
+  "legend_details": "ea-details-table-row[slot='details-table-row']",
+  "legend_details_name": "div > div:nth-child(1)",
+  "legend_details_value": "div > div:nth-child(2)"
 }
