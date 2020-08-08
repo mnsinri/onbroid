@@ -1,10 +1,11 @@
-import asyncio
-
 from bot import Onbroid
 from config import Config
 
-if __name__ == "__main__":
+def main():
     config = Config('../token.json')
+    onbroid = Onbroid(config)
 
-    bot = Onbroid(config)
-    bot.run()
+    onbroid.run()
+
+if __name__ == "__main__":
+    main()

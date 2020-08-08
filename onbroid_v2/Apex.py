@@ -63,10 +63,16 @@ class ApexRandomCharactor():
         self.legends = await self.parse_legends(soupOfCharacters)
         print('[ApexRandomCharactor] refresh')
         
-    def get_legend(self):
+    async def get_legend(self):
+        if not self.legends:
+           await self.refresh_legends()
+
         return self.legends[random.randint(0, len(self.legends)-1)]
     
-    def get_legends(self, team=1):
+    async def get_legends(self, team=1):
+        if not self.legends:
+            await self.refresh_legends()
+
         indexList = list(range(len(self.legends)))
         popedList = random.sample(indexList, len(indexList))[:min(3, team)]
         return [self.legends[i] for i in popedList]
