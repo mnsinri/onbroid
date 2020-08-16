@@ -10,6 +10,7 @@ class ApexRandomCharactor():
         self.pathes = Selector()
         self.session = aiohttp.ClientSession()
         self.legends = []
+        self.seasonIndex = None
 
     async def close_session(self):
         await self.session.close()
@@ -58,24 +59,26 @@ class ApexRandomCharactor():
         legendsObjArray = [await self.parse_legends_list(data) for data in legendsList]
         return legendsObjArray
 
+    def parse_season(self, soup):
+        seasonList = soup.select(self.pathes.apex_seasons())
+        return len(seasonList)
+
     async def refresh_legends(self):
         soupOfCharacters = await self.get_soup('https://www.ea.com/ja-jp/games/apex-legends/about/characters')
+        self.seasonIndex = self.parse_season(soupOfCharacters)
         self.legends = await self.parse_legends(soupOfCharacters)
         print('[ApexRandomCharactor] refresh')
         
-    async def get_legend(self):
-        if not self.legends:
-           await self.refresh_legends()
-
+    def get_legend(self):
         return self.legends[random.randint(0, len(self.legends)-1)]
     
-    async def get_legends(self, team=1):
-        if not self.legends:
-            await self.refresh_legends()
-
+    def get_legends(self, team=1):
         indexList = list(range(len(self.legends)))
         popedList = random.sample(indexList, len(indexList))[:min(3, team)]
         return [self.legends[i] for i in popedList]
+    
+    def get_season(self):
+        return self.seasonIndex
 
 class ApexProfile():
     def __init__(self, api_key):
@@ -121,4 +124,3 @@ class ApexProfile():
     async def searchProfile(self, username):
         response = await self.get_profile(self.endpoint + username)
         return self.parse_profile(response)
-        

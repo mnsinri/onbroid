@@ -43,4 +43,7 @@ class Selector():
 
 	def profile_error(self):
 		return self.config.get('profile_error')
+	
+	def apex_seasons(self):
+		return self.config.get('apex_seasons')
 

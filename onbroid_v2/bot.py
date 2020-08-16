@@ -16,11 +16,13 @@ class Onbroid(discord.Client):
         self.dictionary = ITDict()
         self.apexRandomCharactor = ApexRandomCharactor()
         self.apexProfile = ApexProfile(self.config.api_key)
-        # self.loop = asyncio.get_event_loop()
 
-    def run(self):
+    async def setup(self):
+        await self.apexRandomCharactor.refresh_legends()
+
+    async def start(self):
         # self.loop.run_until_complete(self.start(self.config.token))
-        super().run(self.config.token)
+        await super().start(self.config.token)
 
     def make_embed(self, contents='', thumbnail='', fields=[], author={}, footer=''):
         embed = None
@@ -42,10 +44,10 @@ class Onbroid(discord.Client):
     async def pex_select_charactor(self, menber):
         if menber and menber.isdecimal():
             thumbnail = 'https://media.contentapi.ea.com/content/dam/apex-legends/common/logos/apex-copyright-sigil-white.png'
-            contents = await self.apexRandomCharactor.get_legends(int(menber))
-            return self.make_embed({ 'title': ':new: **部隊メンバー**' }, thumbnail , [self.parse_legends(legend) for legend in contents], footer='no pex, no life')
+            contents = self.apexRandomCharactor.get_legends(int(menber))
+            return self.make_embed({'title': ':new: **部隊メンバー**'}, thumbnail , [self.parse_legends(legend) for legend in contents], footer='no pex, no life')
         else:
-            contents = await self.apexRandomCharactor.get_legends()
+            contents = self.apexRandomCharactor.get_legends()
             return self.make_embed(contents[0]['embed'], contents[0]['thumbnail'], contents[0]['fields'], footer='no pex, no life')
 
     async def pex_profile(self, name):
@@ -55,10 +57,47 @@ class Onbroid(discord.Client):
         else:
             return None
 
-    async def cmd_closeHelesta(self, message, channel, *args):
-        print('[cmd_colseHelesta]')
+    def pex_info(self, arg):
+        url = 'https://www.ea.com/ja-jp/games/apex-legends'
+        items = [
+            {'name': 'Legends', 'pass': '/about/characters'},
+            {'name': 'Battlepass', 'pass': '/battle-pass'},
+            {'name': 'News', 'pass': '/news'}
+        ]
+        contents = {
+            'title': '',
+            'description': ''
+        }
+
+        if arg:
+            arg = arg.lower()
+            if 'season' in arg:
+                seasonIndex = arg[len('season'):]
+                nowSeason = self.apexRandomCharactor.get_season()
+                seasonIndex = seasonIndex if seasonIndex.isdecimal() and int(seasonIndex) > 0 and int(seasonIndex) <= nowSeason else nowSeason
+                url += '/season-' + str(seasonIndex)
+                contents['title'] = f'**Season{seasonIndex} Infomation**'
+            else:
+                for item in items:
+                    if item['name'].lower() == arg:
+                        about = item['name']
+                        url += item['pass']
+                        contents['title'] = f'**{about} Infomation**'
+                        break
+
+        if not contents['title']:
+            contents['title'] = '**Apex Infomation**'
+        contents['description'] += f':point_right: [link here]({url})'
+
+        return self.make_embed(contents, footer='no pex, no life')
+
+    async def cmd_close_helesta(self, message, channel, *args):
+        print('[cmd_colse_helesta]')
+        print('self.apexRandomCharactor.close_session()')
         await self.apexRandomCharactor.close_session()
+        print('self.apexProfile.close_session()')
         await self.apexProfile.close_session()
+        print('self.close()')
         await self.close()
     
     async def cmd_help(self, message, channel, *args):
@@ -68,24 +107,24 @@ class Onbroid(discord.Client):
             'description': 'Prefix: `'+self.config.prefix+'`'
         }
         fields = [
-            {'name': '```'+self.config.prefix+'pex```','value': 'a legend is randomly selected.'},
-            {'name': '```'+self.config.prefix+'pex {num}```','value': '{num (1~3)} legends are randomly selected.'},
-            {'name': '```'+self.config.prefix+'pex -refresh```','value': 'legends list updated'},
-            {'name': '```'+self.config.prefix+'pex -profile {username}```','value': "show {username}'s APEX profile"},
-            {'name': '```'+self.config.prefix+'{search_item}```','value': 'search {search_item} in e-words'}
+            {'name': '```'+self.config.prefix+'pex```','value': 'A legend is randomly selected.'},
+            {'name': '```'+self.config.prefix+'pex {num}``','value': '__num (1~3)__ legends are randomly selected.'},
+            {'name': '```'+self.config.prefix+'pex -refresh```','value': 'Legends list is updated'},
+            {'name': '```'+self.config.prefix+'pex -profile {username}```','value': "show __username__'s APEX profile"},
+            {'name': '```'+self.config.prefix+'pex -info {contents}```','value': 'show link about __contents__'},
+            {'name': '```'+self.config.prefix+'search {search_item}```','value': 'search __search_item__ in e-words'}
         ]
         embed = self.make_embed(container, fields=fields)
         await channel.send(embed=embed)
 
     async def cmd_pex(self, message, channel, *args):
-        print('[cmd_pex]' + ''.join(args))
+        print('[cmd_pex]' + ' '.join(args))
         option = ''
         comment = ''
         embed = None
 
         args = list(args)
         for arg in args:
-            print(arg)
             if arg.startswith('-'):
                 option = arg.lstrip('-')
                 args.remove(arg)
@@ -96,10 +135,14 @@ class Onbroid(discord.Client):
 
         if option:
             if option == 'refresh':
-                await self.apexRandomCharactor.refresh_legends()
-                return
-            if option == 'profile':
-                embed = await self.pex_profile(arg)
+                await self.apexRandomCharactor.refresh_legends()()
+                comment = 'きちゃー！'
+            elif option == 'profile':
+                embed = self.pex_profile(arg)
+                if not embed:
+                    comment = f'{arg}さん...?'
+            elif option == 'info':
+                embed = self.pex_info(arg)
         else:
             comment = message.author.mention + ' you are ...'
             embed = await self.pex_select_charactor(arg)
